@@ -120,6 +120,29 @@ void handle_state_agent_disconnected(void) {
 void uros_create_entities(void) {
   allocator = rcl_get_default_allocator();
 
+
+
+
+
+
+  rmw_uros_set_custom_transport(true, (void *) &huart2, cubemx_transport_open, cubemx_transport_close, cubemx_transport_write, cubemx_transport_read);
+
+  // ----- 加入這段 Ping 迴圈 -----
+  // 每 100 毫秒 Ping 一次，總共嘗試直到成功為止
+  while(rmw_uros_ping_agent(100, 1) != RMW_RET_OK) {
+      // 可以在這裡閃爍一下 LED，代表正在等待連線
+      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+      osDelay(100);
+  }
+  // 走到這裡代表確定與 Docker Agent 連線成功！LED 恆亮
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+  // -----------------------------
+
+
+
+
+
+
   init_options = rcl_get_zero_initialized_init_options();
   rcl_init_options_init(&init_options, allocator);
   rcl_init_options_set_domain_id(&init_options, DOMAIN_ID);
